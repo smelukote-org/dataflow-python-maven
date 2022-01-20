@@ -1,0 +1,73 @@
+# [START cloudbuild]
+steps:
+# This step runs the unit tests on the app
+- name: 'python:3.7-slim'
+  id: UnitTest
+  entrypoint: /bin/sh
+  args:
+  - -c
+  - 'pip install flask && pip install pytest &&  pytest unit-test/test_app.py -v'
+
+# This step builds the container image.
+- name: 'gcr.io/cloud-builders/docker'
+  id: Build
+  args:
+  - 'build'
+  - '-t'
+  - 'gcr.io/bcs-global-comm-data-env-dev/hello-cloudbuild:$SHORT_SHA'
+  - '.'
+
+# This step pushes the image to Container Registry
+# The PROJECT_ID and SHORT_SHA variables are automatically
+# replaced by Cloud Build.
+- name: 'gcr.io/cloud-builders/docker'
+  id: Push
+  args:
+  - 'push'
+  - 'gcr.io/bcs-global-comm-data-env-dev/hello-cloudbuild:$SHORT_SHA'
+
+# Building java application using maven 
+- name: maven:3-jdk-9
+  entrypoint: mvn
+  args: ['--version']
+# [END cloudbuild]
+
+# Package yout app
+- name: maven:3-jdk-8
+  entrypoint: mvn
+  args: ['package','-Dmaven.test.skip=true']
+
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '-t', 'gcr.io/bcs-global-comm-data-env-dev/my-df-java', '--build-arg=JAR_FILE=target/build-artifact', '.']
+images: ['gcr.io/bcs-global-comm-data-env-dev/my-df-java']
+
+# Compile and run the packaged java file
+- name: gcr.io/cloud-builders/mvn
+  args:[compile, 
+  exec:java,
+  -Dexec.mainClass=com.examples.pubsub.streaming/PubSubToGcs,
+  "-Dexec.args \
+  --jobName=my-new-job5 \
+  --subnetwork=https://www.googleapis.com/compute/v1/projects/bcs-csw-vpc-host/regions/us-central1/subnetworks/bcs-global-comm-data-env-dev-dataflow \
+  --network=projects/bcs-csw-vpc-host/global/networks/csw \
+  --project=bcs-global-comm-data-env-dev \
+  --region=us-central1 \
+  --inputTopic=projects/bcs-global-comm-data-env-dev/topics/mytopic \
+  --output=gs://demo-eu-inputfiles/samples/output \
+  --gcpTempLocation=gs://demo-eu-inputfiles/temp \
+  --runner=DataflowRunner \
+  --windowSize=2"
+
+
+#steps:
+# This step deploys the new version of our container image
+# in the us-central1-bcs-global-comm-fb7c3617-gke Kubernetes Engine cluster.
+#- name: 'gcr.io/cloud-builders/kubectl'
+#  id: Deploy
+#  args:
+#  - 'apply'
+#  - '-f'
+#  - 'kubernetes.yaml'
+#  env:
+#  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-b'
+# - 'CLOUDSDK_CONTAINER_CLUSTER=us-central1-bcs-global-comm-fb7c3617-gke'
