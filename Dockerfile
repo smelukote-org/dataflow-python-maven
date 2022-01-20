@@ -1,4 +1,8 @@
-FROM apache/beam_java8_sdk:2.35.0
+# [START dockerfile]
+FROM python:3.7-slim
+RUN pip install flask
 WORKDIR /app
-COPY script.sh /app/script.sh
-ENTRYPOINT [ "/app/script.sh" ]
+COPY app.py /app/app.py
+ENTRYPOINT ["python"]
+CMD ["/app/app.py"]
+# [END dockerfile]
