@@ -14,7 +14,7 @@ steps:
   args:
   - 'build'
   - '-t'
-  - 'gcr.io/bcs-global-comm-data-env-dev/hello-cloudbuild:$SHORT_SHA'
+  - 'gcr.io/smdata2022/hello-cloudbuild:$SHORT_SHA'
   - '.'
 
 # This step pushes the image to Container Registry
@@ -24,7 +24,7 @@ steps:
   id: Push
   args:
   - 'push'
-  - 'gcr.io/bcs-global-comm-data-env-dev/hello-cloudbuild:$SHORT_SHA'
+  - 'gcr.io/smdata2022/hello-cloudbuild:$SHORT_SHA'
 
 # Building java application using maven 
 - name: maven:3-jdk-9
@@ -38,25 +38,25 @@ steps:
   args: ['package','-Dmaven.test.skip=true']
 
 - name: gcr.io/cloud-builders/docker
-  args: ['build', '-t', 'gcr.io/bcs-global-comm-data-env-dev/my-df-java', '--build-arg=JAR_FILE=target/build-artifact', '.']
-images: ['gcr.io/bcs-global-comm-data-env-dev/my-df-java']
+  args: ['build', '-t', 'gcr.io/smdata2022/my-df-java', '--build-arg=JAR_FILE=target/build-artifact', '.']
+images: ['gcr.io/smdata2022/my-df-java']
 
 # Compile and run the packaged java file
-- name: gcr.io/cloud-builders/mvn
-  args:[compile, 
-  exec:java,
-  -Dexec.mainClass=com.examples.pubsub.streaming/PubSubToGcs,
-  "-Dexec.args \
-  --jobName=my-new-job5 \
-  --subnetwork=https://www.googleapis.com/compute/v1/projects/bcs-csw-vpc-host/regions/us-central1/subnetworks/bcs-global-comm-data-env-dev-dataflow \
-  --network=projects/bcs-csw-vpc-host/global/networks/csw \
-  --project=bcs-global-comm-data-env-dev \
-  --region=us-central1 \
-  --inputTopic=projects/bcs-global-comm-data-env-dev/topics/mytopic \
-  --output=gs://demo-eu-inputfiles/samples/output \
-  --gcpTempLocation=gs://demo-eu-inputfiles/temp \
-  --runner=DataflowRunner \
-  --windowSize=2"
+# - name: gcr.io/cloud-builders/mvn
+#   args:[compile, 
+#   exec:java,
+#   -Dexec.mainClass=com.examples.pubsub.streaming/PubSubToGcs,
+#   "-Dexec.args \
+#   --jobName=my-new-job5 \
+#   --subnetwork=default\
+#   --network=default \
+#   --project=smdata2022 \
+#   --region=us-central1 \
+#   --inputTopic=projects/smdata2022/topics/mytopic \
+#   --output=gs://quickstart-dataflow-smdata2022/samples/output \
+#   --gcpTempLocation=gs://quickstart-dataflow-smdata2022/temp \
+#   --runner=DataflowRunner \
+#   --windowSize=2"
 
 
 #steps:
