@@ -26,11 +26,6 @@ steps:
   - 'push'
   - 'gcr.io/smdata2022/hello-cloudbuild:$SHORT_SHA'
 
-
-- name: gcr.io/cloud-builders/docker
-  args: ['build', '-t', 'gcr.io/smdata2022/hello-world', '--build-arg=JAR_FILE=target/build-artifact', '.']
-images: ['gcr.io/smdata2022/hello-world']
-
 # Building java application using maven 
 # - name: maven:3-jdk-9
 #   entrypoint: mvn
